@@ -1,10 +1,10 @@
 # QCcensusExplorer
 Shiny application using R to analyze 2021 Census of Population (Canada) data.
 
-Link used 
+Link used :
 * https://censusmapper.ca/
 * https://shiny.rstudio.com/
 * https://cran.r-project.org/web/packages/cancensus/vignettes/cancensus.html
 * https://ici.radio-canada.ca/info/2022/07/ilots-chaleur-villes-inegalites-injustice-changements-climatiques/metho#Donnesdurecensementde2016_level-2
+* https://habr.com/en/post/490546/?fbclid=IwAR2Y4i1_RKLOebOZNpvUA5xHBePJmN_9UKqc-MXzzlrBIBGs_9tTBMT2A-E
 
-Essai 
