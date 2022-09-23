@@ -20,19 +20,19 @@ dat_DA = dat_DA %>%
 dat_DA = dat_DA %>% 
   rename_with(str_replace, pattern = ":.*", replacement = "")
 
-breaks_qt <- classIntervals(dat_DA$`v_CA21_906: Median total income of household in 2020 ($)`, n = 9, style = "quantile")
+breaks_qt <- classIntervals(dat_DA$CA21_906, n = 9, style = "quantile")
 #Break the variable into quantiles
 
 pal_fun <- colorQuantile("YlOrRd", NULL, n = 9)
 #Create a function for the color palette
-p_popup <- paste0("<strong>Revenu médian des ménages ($) : </strong>", dat_DA$`v_CA21_906: Median total income of household in 2020 ($)`)
+p_popup <- paste0("<strong>Revenu médian des ménages ($) : </strong>", dat_DA$CA21_906)
 
 
 
 leaflet(dat_DA) %>%
   addPolygons(
     stroke = TRUE, color = "black", opacity = 0.2, weight = 1.5,
-    fillColor = ~pal_fun(`v_CA21_906: Median total income of household in 2020 ($)`),
+    fillColor = ~pal_fun(CA21_906),
     fillOpacity = 0.75, smoothFactor = 0.5,
     highlightOptions = highlightOptions(color = "white", weight = 2,
                                         bringToFront = TRUE),
