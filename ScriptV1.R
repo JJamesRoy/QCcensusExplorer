@@ -6,6 +6,7 @@ library(RColorBrewer)
 library(classInt)
 library(tidyverse)
 library(stringr)
+library(janitor)
 
 
 options(cancensus.api_key='CensusMapper_f622f3df6a9035ecbfee37004202c139')
