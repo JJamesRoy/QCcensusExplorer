@@ -1,11 +1,3 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
 
 library(shiny)
 library(shinydashboard)
@@ -18,9 +10,12 @@ library(geojsonsf)
 library(leaflet)
 library(RColorBrewer)
 library(classInt)
-library(tidyverse)
 library(stringr)
 library(janitor)
+library(RCurl)
+library(stringi)
+library(ggplot2)
+library(scales)
 
 options(cancensus.api_key='CensusMapper_f622f3df6a9035ecbfee37004202c139')
 options(cancensus.cache_path = "C:/Users/Alfred/OneDrive/sciences_economiques/FAS1002/Projet_spécial/cache")
@@ -34,6 +29,23 @@ dat_DA = dat_DA %>%
 dat_DA = dat_DA %>% 
   rename_with(str_replace, pattern = ":.*", replacement = "")
 
+
+dat_pc <- read.table("pccf_fccp_V2209_2021.txt", header=FALSE,sep=";")
+# Read PCCF file to link postal code to DA
+
+dat_pc$V2 = substr(dat_pc$V1, 1, 6)
+dat_pc$V3 = substr(dat_pc$V1, 126, 133)
+dat_pc$V3 = as.numeric(dat_pc$V3)
+
+dat_pc = dat_pc %>% filter(grepl("^(2465|2466)",V3)) %>% mutate(GeoUID = V3) %>%  mutate(PC = V2)
+
+dat_pc$GeoUID = as.character(dat_pc$GeoUID)
+
+dat_pc = subset(dat_pc, select = c(GeoUID, PC))
+
+dat = left_join(dat_DA, dat_pc, by = 'GeoUID') #Add the postal code as a vector ?
+test = merge(dat_DA, dat_pc, by = "GeoUID")
+
 breaks_qt <- classIntervals(dat_DA$CA21_906, n = 9, style = "quantile")
 #Break the variable into quantiles
 
@@ -41,64 +53,39 @@ pal_fun <- colorQuantile("YlOrRd", NULL, n = 9)
 #Create a function for the color palette
 p_popup <- paste0("<strong>Revenu médian des ménages ($) : </strong>", dat_DA$CA21_906)
 
-
+# Define UI for application that draws a histogram
 ui <- dashboardPage(
-  skin = 'blue',
-  dashboardHeader(title = "portrait socio-economique de Montreal"),
-  dashboardSidebar(
-    sliderInput("Salaire_median", label = "Salaire Median",
-                min = min(dat_DA$CA21_906, na.rm = TRUE),
-                max = max(dat_DA$CA21_906, na.rm = TRUE),
-                value = c(min(dat_DA$CA21_906, na.rm = TRUE), max(dat_DA$CA21_906, na.rm = TRUE)),
-                sep = "",
-                step = 1)
-  ),
+  dashboardHeader(title = 'Portrait Socio-économque MTL'),
+  dashboardSidebar(),
   dashboardBody(
-    fluidRow(box(width = 12, leafletOutput(outputId = "mymap"))),
-    fluidRow(box(width = 12, dataTableOutput(outputId = "summary_table")))
+    box(plotOutput('plot1'), height = 250),
+    box(
+      title = "Controle",
+      sliderInput('slider','Salaire median',
+                  min(test$CA21_906,na.rm = TRUE),
+                  max(test$CA21_906,na.rm = TRUE),
+                  value = c(min(test$CA21_906, na.rm = TRUE), max(test$CA21_906, na.rm = TRUE))
+      )
+    )
   )
 )
 
-
+# Define server logic required to draw a histogram
 server <- function(input, output) {
+  histdata <- test$CA21_906
   
-  data_input <- reactive({
-    dat_DA %>% 
-    filter(CA21_906 >= input$Salaire_median[1]) %>% 
-    filter(CA21_906 <= input$Salaire_median[2]) %>% 
-    group_by(`Area (sq km)`) %>% 
-    summarize(CA21_906 = n())
-  })  
-
-  #data_input_ordered <- reactive({
-    #data_input()[order(match(data_input()$CA21_906))]
-  #})
+  output$plot1 <- renderPlot({
+    data <- histdata[seq_len(input$slider)]
+      ggplot(test, aes(x=CA21_906)) + 
+      geom_histogram(colour="black", fill="white",bins=30)+
+      geom_density(alpha=.2, fill="#FF6666") + 
+      xlab('Salaire median') +
+      scale_x_continuous(labels = comma)
     
-  #lablels <- reactive ({
-   # paste("<p>", data_input_ordered()$`Area (sq km)`,"<p>",
-    #      "<p>","Solve Rate", round(data_input_ordered()))
- # })
-  
-  
-  output$mymap <- renderLeaflet(
-    leaflet(dat_DA) %>%
-      addPolygons(
-        stroke = TRUE, color = "black", opacity = 0.2, weight = 1.5,
-        fillColor = ~pal_fun(CA21_906),
-        fillOpacity = 0.75, smoothFactor = 0.5,
-        highlightOptions = highlightOptions(color = "white", weight = 2,
-                                            bringToFront = TRUE),
-        popup = p_popup) %>%
-      addTiles() #%>%
-      #addLegend("bottomright", 
-                #colors = brewer.pal(9, "YlOrRd"), 
-                #labels = paste0("up to ", format(breaks_qt$brks[-1], digits = 2)),
-                #title =  'Revenu moyen des ménages en $')
-  )
-  
-  output$summary_table <- renderDataTable(data_input())
-
+    #p + scale_x_continuous(labels = comma)
+      
+  })
 }
 
 # Run the application 
-shinyApp(ui = ui, server = server)
+shinyApp(ui, server)
