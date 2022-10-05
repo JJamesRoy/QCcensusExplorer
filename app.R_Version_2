@@ -53,13 +53,47 @@ pal_fun <- colorQuantile("YlOrRd", NULL, n = 9)
 #Create a function for the color palette
 p_popup <- paste0("<strong>Revenu médian des ménages ($) : </strong>", dat_DA$CA21_906)
 
+#Enlève toutes les lignes non complète
+data_complete <- test[complete.cases(test$CA21_906), ]
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+body <- dashboardBody(
+  fluidRow(
+    tabBox(
+      title = "Graphiques",
+      id = "tabset1", height = "300px",
+      tabPanel("Tab1",plotOutput('plot1',height = 450)),
+      tabPanel("Tab2","Tab content 2")
+    ),
+    tabBox(
+      side = "right", height = "250px",
+      selected = "Tab3",
+      tabPanel("Tab1",background = "navy",
+               sliderInput('slider','Salaire median',
+                           min(data_complete$CA21_906),
+                           max(data_complete$CA21_906),
+                           value = c(min(data_complete$CA21_906), 
+                                     max(data_complete$CA21_906))),
+               tabPanel("tab2","Tab content 2"),
+               tabPanel("tab3", "Note that when side=right, the tab order is reversed.")
+               )
+    )
+  )
+)
+
 # Define UI for application that draws a histogram
 ui <- dashboardPage(
-  dashboardHeader(title = 'Portrait Socio-économque MTL'),
+  
+  dashboardHeader(title = "Portrait Socio-économque MTL"),
   dashboardSidebar(
+    
     sidebarMenu(
       menuItem("Dashboard",tabName = "dashboard",icon = icon("dashboard")),
       menuItem("Widgets",tabName = "widgets",icon = icon("th"))
+      
+      #sidebarSearchForm(textId = "searchText", buttonId = "searchButton",
+                        #label = "Search...")
     )
   ),
   dashboardBody(
@@ -68,15 +102,20 @@ ui <- dashboardPage(
       tabItem(tabName = 'dashboard',
               fluidRow(
       
-       box(plotOutput('plot1'), height = 250),
+       box(title = "Graphiques",
+           status = "primary",
+           plotOutput('plot1',height = 450)),
     
     box(
+      
       title = "Controle",
+      #status = "primary",
+      background = "navy",
       sliderInput('slider','Salaire median',
-                  min(test$CA21_906,na.rm = TRUE),
-                  max(test$CA21_906,na.rm = TRUE),
-                  value = c(min(test$CA21_906, na.rm = TRUE), 
-                            max(test$CA21_906, na.rm = TRUE))
+                  min(data_complete$CA21_906),
+                  max(data_complete$CA21_906),
+                  value = c(min(data_complete$CA21_906), 
+                            max(data_complete$CA21_906))
       )
     )
   )
@@ -92,19 +131,30 @@ ui <- dashboardPage(
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-  histdata <- test$CA21_906
+  
+  histdata <- data_complete$CA21_906
+  
+ un <- reactive({
+   df <- data_complete[data_complete$CA21_906 %in% seq(from=min(input$slider), to=max(input$slider), by=1),]
+   print(df)
+   df
+ })
   
   output$plot1 <- renderPlot({
-    data <- histdata[seq_len(input$slider)]
-      ggplot(test, aes(x=CA21_906)) + 
-      geom_histogram(colour="black", fill="white",bins=30)+
-      geom_density(alpha=.2, fill="#FF6666") + 
-      xlab('Salaire median') +
-      scale_x_continuous(labels = comma)
-    
+    #histdata[(input$slider)]
+      ggplot(un(),aes(x=CA21_906)) + 
+      geom_histogram(colour="black", fill="lightblue",bins=30)+
+      xlab('Salaire median')+ 
+      scale_x_continuous(labels = comma)+
+      scale_y_continuous(labels = comma) + 
+      theme(text = element_text(size = 20))
+        #geom_vline(aes(xintercept=mean()),
+                   #color="red", linetype="dashed", size=1)
       
   })
+ 
 }
+
 
 # Run the application 
 shinyApp(ui, server)
