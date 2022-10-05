@@ -20,22 +20,27 @@ dat_DA = dat_DA %>%
 
 dat_DA = dat_DA %>% 
   rename_with(str_replace, pattern = ":.*", replacement = "")
-
-dat_pc <- read.table("~/R/QcCensusExplorer - Rstudio/pccf_fccp_V2209_2021.txt", header=FALSE, sep=";")
+### Codes postaux
+#dat_pc <- read.table("~/R/QcCensusExplorer - Rstudio/pccf_fccp_V2209_2021.txt", header=FALSE, sep=";")
  # Read PCCF file to link postal code to DA
 
-dat_pc$V2 = substr(dat_pc$V1, 1, 6)
-dat_pc$V3 = substr(dat_pc$V1, 126, 133)
-dat_pc$V3 = as.numeric(dat_pc$V3)
+#dat_pc$V2 = substr(dat_pc$V1, 1, 6)
+#dat_pc$V3 = substr(dat_pc$V1, 126, 133)
+#dat_pc$V3 = as.numeric(dat_pc$V3)
 
-dat_pc = dat_pc %>% filter(grepl("^(2465|2466)",V3)) %>% mutate(GeoUID = V3) %>%  mutate(PC = V2)
+#dat_pc = dat_pc %>% filter(grepl("^(2465|2466)",V3)) %>% mutate(GeoUID = V3) %>%  mutate(PC = V2)
 
-dat_pc$GeoUID = as.character(dat_pc$GeoUID)
+#dat_pc$GeoUID = as.character(dat_pc$GeoUID)
 
-dat_pc = subset(dat_pc, select = c(GeoUID, PC))
+#dat_pc = subset(dat_pc, select = c(GeoUID, PC))
 
-dat = left_join(dat_DA, dat_pc, by = 'GeoUID') #Add the postal code as a vector ?
-test = merge(dat_DA, dat_pc, by = "GeoUID")
+#testtest = dat_pc %>% nest(PC)
+
+#testtest1 = dat_pc %>% nest(GeoUID)
+
+#dat = left_join(dat_DA, dat_pc, by = 'GeoUID') #Add the postal code as a vector ?
+#test = merge(dat_DA, dat_pc, by = "GeoUID")
+###
 
 breaks_qt <- classIntervals(dat_DA$CA21_906, n = 9, style = "quantile")
 #Break the variable into quantiles
