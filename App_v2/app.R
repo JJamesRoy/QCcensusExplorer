@@ -17,8 +17,10 @@ library(stringi)
 library(ggplot2)
 library(scales)
 
+source("scaffold.R")
+
 options(cancensus.api_key='CensusMapper_f622f3df6a9035ecbfee37004202c139')
-options(cancensus.cache_path = "C:/Users/james/OneDrive/Documents/R cache")
+options(cancensus.cache_path = "./data/cache")
 dat_DA <- get_census(dataset='CA21', regions=list(CD=c("2466","2465")), vectors=c("v_CA21_1","v_CA21_4","v_CA21_6","v_CA21_386","v_CA21_434","v_CA21_452","v_CA21_497","v_CA21_498","v_CA21_593","v_CA21_596","v_CA21_671","v_CA21_719","v_CA21_767","v_CA21_905","v_CA21_1140","v_CA21_1144","v_CA21_906","v_CA21_907","v_CA21_923","v_CA21_944"), labels="detailed", geo_format="sf", level='DA')
 # dat_CT <- get_census(dataset='CA21', regions=list(CD=c("2466","2465")), vectors=c("v_CA21_1","v_CA21_4","v_CA21_6","v_CA21_386","v_CA21_434","v_CA21_452","v_CA21_497","v_CA21_498","v_CA21_593","v_CA21_596","v_CA21_671","v_CA21_719","v_CA21_767","v_CA21_905","v_CA21_1140","v_CA21_1144","v_CA21_906","v_CA21_907","v_CA21_923","v_CA21_944"), labels="detailed", geo_format="sf", level='CT')
 
@@ -59,7 +61,7 @@ p_popup <- paste0("<strong>Revenu médian des ménages ($) : </strong>", dat_DA$
 
 
 #Enlève toutes les lignes non complète
-data_complete <- test[complete.cases(test$CA21_906), ]
+data_complete <- dat_DA[complete.cases(dat_DA$CA21_906), ]
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -85,7 +87,7 @@ ui <- dashboardPage(
               fluidRow(
                 tabBox(
                   title = "Graphiques",
-                  status = 'primary',
+                  #status = 'primary',
                   id = "tabset1", 
                   height = "300px",
                   tabPanel("Tab1",plotOutput('plot1',height = 450)),
@@ -93,7 +95,7 @@ ui <- dashboardPage(
                 ),
                 tabBox(
                   side = "left", height = "300px",
-                  background = "navy",
+                  #background = "navy",
                   selected = "Tab1",
                   tabPanel("Tab1",
                            sliderInput('slider','Salaire median',
